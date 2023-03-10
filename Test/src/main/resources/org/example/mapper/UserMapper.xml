@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.mapper.UserMapper">
+    <!--  查询用户钱包余额  -->
+    <select id="balance" resultType="java.lang.Double">
+        SELECT balance
+        FROM user
+        where id = #{id};
+    </select>
+
+    <!--  用户消费100元的接口  -->
+    <update id="update100">
+        UPDATE USER
+        SET balance = balance - 100
+        WHERE id = #{id};
+    </update>
+    <insert id="reduce100">
+        INSERT INTO wallet
+        VALUES (#{id}, -100,
+                (SELECT balance
+                 FROM USER
+                 WHERE id = #{id}))
+    </insert>
+
+    <!--  用户退款20元接口  -->
+    <update id="update20">
+        UPDATE USER
+        SET balance = balance + 20
+        WHERE id = #{id};
+    </update>
+    <insert id="add20">
+        INSERT INTO wallet
+        VALUES (#{id}, 20,
+                (SELECT balance
+                 FROM USER
+                 WHERE id = #{id}))
+    </insert>
+
+    <!--  查询用户钱包金额变动明细的接口  -->
+    <resultMap id="WalletMap" type="Wallet">
+        <result column="uid" property="uid"/>
+        <result column="detail" property="detail"/>
+
+        <association property="user">
+
+            <result column="id" property="id"/>
+            <result column="name" property="name"/>
+            <result column="balance" property="balance"/>
+        </association>
+    </resultMap>
+    <select id="selectById" resultMap="WalletMap">
+        SELECT uid,
+               id,
+               name,
+               wallet.balance,
+               detail
+        FROM wallet,
+             user
+        WHERE id = uid
+          and uid = #{id}
+    </select>
+
+    <select id="selectAll" resultType="Wallet">
+        select * from wallet;
+    </select>
+
+
+</mapper>
